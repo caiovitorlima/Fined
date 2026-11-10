@@ -2,6 +2,7 @@ services:
   - type: web
     name: fined
     runtime: docker
+    rootDir: Fined
     plan: free
     region: virginia
     healthCheckPath: /healthz
