@@ -1,0 +1,35 @@
+{% extends "layout_app.html" %}
+{% from "_icones.html" import icone %}
+{% from "_macros.html" import cartao_meta, vazio with context %}
+{% block titulo %}Metas | Fined{% endblock %}
+{% block conteudo %}
+<header class="cabeca">
+  <h1>Metas</h1>
+  <a class="btn btn--tinta" href="{{ url_for('metas.nova') }}">{{ icone('mais') }} Nova meta</a>
+</header>
+
+{% if ativas or batidas %}
+<div class="metas-resumo">
+  <span>Total guardado</span>
+  <strong>{{ total_guardado|brl }}</strong>
+</div>
+{% endif %}
+
+{% if ativas %}
+<h2 class="titulo-secao">Em andamento <small>({{ ativas|length }})</small></h2>
+<div class="metas-grade">
+  {% for meta in ativas %}{{ cartao_meta(meta, texto_prazo) }}{% endfor %}
+</div>
+{% elif not batidas %}
+<div class="cartao">
+  {{ vazio('Nenhuma meta cadastrada') }}
+</div>
+{% endif %}
+
+{% if batidas %}
+<h2 class="titulo-secao">Concluídas <small>({{ batidas|length }})</small></h2>
+<div class="metas-grade">
+  {% for meta in batidas %}{{ cartao_meta(meta, texto_prazo) }}{% endfor %}
+</div>
+{% endif %}
+{% endblock %}

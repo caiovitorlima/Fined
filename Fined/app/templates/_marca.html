@@ -1,0 +1,6 @@
+{% macro marca(href) -%}
+<a class="marca" href="{{ href }}" aria-label="Fined, página inicial">
+  <span class="marca__icone"><img src="{{ url_for('static', filename='img/marca.png') }}" width="32" height="32" alt=""></span>
+  <span>Fined</span>
+</a>
+{%- endmacro %}

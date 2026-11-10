@@ -1,0 +1,101 @@
+{% extends "layout_app.html" %}
+{% from "_icones.html" import icone %}
+{% from "_macros.html" import csrf, erro with context %}
+{% block titulo %}Perfil | Fined{% endblock %}
+{% block conteudo %}
+<header class="cabeca">
+  <div>
+    <h1>Perfil</h1>
+  </div>
+</header>
+
+<div class="perfil-grade">
+  <div>
+    <section class="cartao">
+      <h2>Dados da conta</h2>
+      <form method="post" action="{{ url_for('perfil.dados') }}" novalidate>
+        {{ csrf() }}
+        <div class="duas-colunas">
+          <div class="campo{% if erros_dados.nome %} tem-erro{% endif %}">
+            <label for="nome">Nome</label>
+            <input class="entrada" id="nome" name="nome" type="text" autocomplete="name" maxlength="80" value="{{ dados.nome }}" required>
+            {{ erro(erros_dados.nome) }}
+          </div>
+          <div class="campo{% if erros_dados.email %} tem-erro{% endif %}">
+            <label for="email">E-mail</label>
+            <input class="entrada" id="email" name="email" type="email" autocomplete="email" maxlength="160" value="{{ dados.email }}" required>
+            {{ erro(erros_dados.email) }}
+          </div>
+        </div>
+        <div class="campo{% if erros_dados.senha_atual %} tem-erro{% endif %}">
+          <label for="senha_dados">Senha atual (para trocar o e-mail)</label>
+          <input class="entrada" id="senha_dados" name="senha_atual" type="password" autocomplete="current-password">
+          {{ erro(erros_dados.senha_atual) }}
+        </div>
+        <div class="form-acoes">
+          <button class="btn btn--tinta" type="submit"><span>Salvar dados</span></button>
+        </div>
+      </form>
+    </section>
+
+    <section class="cartao">
+      <h2>Trocar senha</h2>
+      <form method="post" action="{{ url_for('perfil.senha') }}" novalidate>
+        {{ csrf() }}
+        <div class="duas-colunas">
+          <div class="campo{% if erros_senha.senha_atual %} tem-erro{% endif %}">
+            <label for="senha_atual">Senha atual</label>
+            <div class="senha-box">
+              <input class="entrada" id="senha_atual" name="senha_atual" type="password" autocomplete="current-password" required>
+              <button class="icone-btn" type="button" data-olho="senha_atual" aria-label="Mostrar senha" aria-pressed="false">{{ icone('olho') }}</button>
+            </div>
+            {{ erro(erros_senha.senha_atual) }}
+          </div>
+          <div class="campo{% if erros_senha.senha_nova %} tem-erro{% endif %}">
+            <label for="senha_nova">Nova senha</label>
+            <div class="senha-box">
+              <input class="entrada" id="senha_nova" name="senha_nova" type="password" autocomplete="new-password" minlength="15" maxlength="128" required>
+              <button class="icone-btn" type="button" data-olho="senha_nova" aria-label="Mostrar senha" aria-pressed="false">{{ icone('olho') }}</button>
+            </div>
+            {% if erros_senha.senha_nova %}{{ erro(erros_senha.senha_nova) }}{% else %}<p class="campo__ajuda">Pelo menos 15 caracteres.</p>{% endif %}
+          </div>
+        </div>
+        <div class="form-acoes">
+          <button class="btn btn--tinta" type="submit">Trocar senha</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div>
+    <section class="cartao">
+      <h2>Resumo da conta</h2>
+      <dl class="estatisticas">
+        <div><dt>Conta criada em</dt><dd>{{ usuario.criado_em.date()|data_br }}</dd></div>
+        <div><dt>Lançamentos</dt><dd>{{ total_lancamentos }}</dd></div>
+        <div><dt>Metas</dt><dd>{{ total_metas }}</dd></div>
+      </dl>
+      <form method="post" action="{{ url_for('auth.sair') }}" style="margin-top: 22px">
+        {{ csrf() }}
+        <button class="btn btn--bloco" type="submit">{{ icone('sair') }}<span>Sair da conta</span></button>
+      </form>
+    </section>
+
+    <section class="cartao cartao--perigo">
+      <details class="detalhes-perigo" {% if erro_excluir %}open{% endif %}>
+        <summary>Excluir minha conta</summary>
+        <p>A exclusão é permanente e inclui os lançamentos e as metas.</p>
+        <form method="post" action="{{ url_for('perfil.excluir') }}" data-confirmar="A conta e todos os registros vinculados serão excluídos." data-confirmar-titulo="Excluir conta?" data-confirmar-botao="Excluir conta">
+          {{ csrf() }}
+          <div class="campo{% if erro_excluir %} tem-erro{% endif %}">
+            <label for="senha_excluir">Confirme com sua senha</label>
+            <input class="entrada" id="senha_excluir" name="senha" type="password" autocomplete="current-password" required>
+            {{ erro(erro_excluir) }}
+          </div>
+          <button class="btn btn--perigo btn--bloco" type="submit" style="margin-top: 16px">{{ icone('lixo') }}<span>Excluir conta</span></button>
+        </form>
+      </details>
+    </section>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends "layout_app.html" %}
+{% from "_icones.html" import icone %}
+{% from "_macros.html" import csrf, erro with context %}
+{% block titulo %}{{ meta.nome }} · Metas | Fined{% endblock %}
+{% block conteudo %}
+<a class="voltar" href="{{ url_for('metas.lista') }}">{{ icone('voltar') }} Metas</a>
+<header class="cabeca">
+  <div>
+    <h1>{{ meta.nome }}</h1>
+    <p class="cabeca__sub">Prazo em {{ meta.prazo|data_br }} · {{ texto_prazo(meta, hoje) }}</p>
+  </div>
+  <div class="cabeca__acoes">
+    <a class="btn btn--p" href="{{ url_for('metas.editar', id_=meta.id) }}">{{ icone('lapis') }}<span>Editar</span></a>
+    <form method="post" action="{{ url_for('metas.excluir', id_=meta.id) }}" data-confirmar="A meta “{{ meta.nome }}” e todo o histórico de valores guardados nela serão apagados.">
+      {{ csrf() }}
+      <button class="btn btn--perigo-suave btn--p" type="submit">{{ icone('lixo') }}<span>Excluir</span></button>
+    </form>
+  </div>
+</header>
+
+<div class="meta-detalhe">
+  <section class="cartao{% if meta.concluida %} is-batida{% endif %}">
+    <div class="meta-progresso">
+      <p><strong>{{ meta.percentual }}%</strong> do valor-alvo</p>
+      <span class="progresso" role="progressbar" aria-label="Progresso da meta" aria-valuenow="{{ meta.percentual }}" aria-valuemin="0" aria-valuemax="100"><i style="width: {{ meta.percentual }}%"></i></span>
+      <dl class="meta-numeros">
+        <div><dt>Guardado</dt><dd>{{ meta.guardado|brl }}</dd></div>
+        <div><dt>Valor-alvo</dt><dd>{{ meta.valor_alvo_centavos|brl }}</dd></div>
+        <div><dt>Falta</dt><dd>{{ meta.falta|brl }}</dd></div>
+      </dl>
+    </div>
+
+    {% if meta.concluida %}
+    <p class="meta-sugestao">Meta concluída{% if meta.guardado > meta.valor_alvo_centavos %}. Valor acima do objetivo: {{ (meta.guardado - meta.valor_alvo_centavos)|brl }}{% endif %}.</p>
+    {% elif sugestao %}
+    <p class="meta-sugestao">Até {{ meta.prazo|data_br }}, separe cerca de <strong>{{ sugestao|brl }} por mês</strong> para completar a meta.</p>
+    {% else %}
+    <p class="meta-sugestao">O prazo {{ 'é hoje' if meta.dias_restantes(hoje) == 0 else 'já passou' }}. Se precisar de mais tempo, <a href="{{ url_for('metas.editar', id_=meta.id) }}">ajuste a data</a>.</p>
+    {% endif %}
+
+    <form class="form-guardar" method="post" action="{{ url_for('metas.guardar', id_=meta.id) }}">
+      {{ csrf() }}
+      <h2 class="titulo-secao">Adicionar contribuição</h2>
+      <div class="linha">
+        <div class="campo{% if erros.valor %} tem-erro{% endif %}">
+          <label for="valor">Valor</label>
+          <input class="entrada" id="valor" name="valor" type="text" inputmode="decimal" autocomplete="off" placeholder="R$ 0,00" maxlength="20" value="{{ campos.valor }}" required>
+          {{ erro(erros.valor) }}
+        </div>
+        <div class="campo{% if erros.data %} tem-erro{% endif %}">
+          <label for="data-guardar">Data</label>
+          <input class="entrada" id="data-guardar" name="data" type="date" min="2000-01-01" max="{{ hoje.isoformat() }}" value="{{ campos.data }}" required>
+          {{ erro(erros.data) }}
+        </div>
+      </div>
+      <div class="atalhos" aria-label="Valores rápidos">
+        {% for rapido in ['10,00', '20,00', '50,00', '100,00'] %}
+        <button class="atalho" type="button" data-valor-rapido="{{ rapido }}" data-alvo="valor">R$ {{ rapido[:-3] }}</button>
+        {% endfor %}
+        {% if meta.falta %}<button class="atalho" type="button" data-valor-rapido="{{ meta.falta|para_campo }}" data-alvo="valor">Valor restante</button>{% endif %}
+      </div>
+      <button class="btn btn--tinta" type="submit">{{ icone('mais') }}<span>Registrar contribuição</span></button>
+    </form>
+  </section>
+
+  <section class="cartao">
+    <header class="cartao__cabeca">
+      <h2>Contribuições</h2>
+      <span class="numero__qtd">{{ plural(meta.contribuicoes|length, 'registro', 'registros') }}</span>
+    </header>
+    {% if meta.contribuicoes %}
+    <ul class="historico-meta">
+      {% for item in meta.contribuicoes %}
+      <li>
+        <span class="data">{{ item.data|data_br }}</span>
+        <span class="valor">+{{ item.valor_centavos|brl }}</span>
+        <form method="post" action="{{ url_for('metas.excluir_contribuicao', id_=meta.id, contribuicao_id=item.id) }}" data-confirmar="Remover a contribuição de {{ item.valor_centavos|brl }} em {{ item.data|data_br }}?" data-confirmar-botao="Remover">
+          {{ csrf() }}
+          <button class="icone-btn icone-btn--perigo" type="submit" aria-label="Remover registro de {{ item.valor_centavos|brl }}">{{ icone('lixo') }}</button>
+        </form>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="calmo">{{ icone('cofre') }} Nenhuma contribuição registrada.</p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

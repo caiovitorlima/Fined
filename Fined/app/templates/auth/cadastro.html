@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% from "_icones.html" import icone %}
+{% from "_marca.html" import marca %}
+{% from "_macros.html" import csrf, erro with context %}
+{% block titulo %}Criar conta | Fined{% endblock %}
+{% block classe_corpo %}publico{% endblock %}
+{% block corpo %}
+<main class="auth" id="conteudo">
+  <section class="auth__form">
+    {{ marca(url_for('publico.inicio')) }}
+    <h1>Criar conta</h1>
+    {% if erro %}
+    <div class="alerta-form" role="alert">{{ icone('alerta') }}<span>{{ erro }}</span></div>
+    {% endif %}
+    <form method="post" action="{{ url_for('auth.cadastro') }}" novalidate>
+      {{ csrf() }}
+      {% if proximo %}<input type="hidden" name="next" value="{{ proximo }}">{% endif %}
+      <div class="campo{% if erros.nome %} tem-erro{% endif %}">
+        <label for="nome">Nome</label>
+        <input class="entrada" id="nome" name="nome" type="text" autocomplete="name" maxlength="80" value="{{ campos.nome }}" required autofocus>
+        {{ erro(erros.nome) }}
+      </div>
+      <div class="campo{% if erros.email %} tem-erro{% endif %}">
+        <label for="email">E-mail</label>
+        <input class="entrada" id="email" name="email" type="email" autocomplete="username" maxlength="160" value="{{ campos.email }}" required>
+        {{ erro(erros.email) }}
+      </div>
+      <div class="campo{% if erros.senha %} tem-erro{% endif %}">
+        <label for="senha">Senha</label>
+        <div class="senha-box">
+          <input class="entrada" id="senha" name="senha" type="password" autocomplete="new-password" minlength="15" maxlength="128" aria-describedby="ajuda-senha" required>
+          <button class="icone-btn" type="button" data-olho="senha" aria-label="Mostrar senha" aria-pressed="false">{{ icone('olho') }}</button>
+        </div>
+        {% if erros.senha %}<p class="campo__erro" id="ajuda-senha" role="alert">{{ erros.senha }}</p>{% else %}<p class="campo__ajuda" id="ajuda-senha">Pelo menos 15 caracteres.</p>{% endif %}
+      </div>
+      <button class="btn btn--tinta btn--g btn--bloco" type="submit">Criar conta</button>
+    </form>
+    <p class="auth__troca">Já tem conta? <a href="{{ url_for('auth.entrar', next=proximo) }}">Entrar</a></p>
+  </section>
+</main>
+{% endblock %}

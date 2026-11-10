@@ -1,0 +1,20 @@
+{% extends layout %}
+{% from "_icones.html" import icone %}
+{% block titulo %}{{ artigo.titulo }} | Fined{% endblock %}
+{% block conteudo %}
+<article class="artigo">
+  <header class="artigo-topo">
+    <a class="voltar" href="{{ url_for('aprender.indice') }}">{{ icone('voltar') }} Guias</a>
+    <h1>{{ artigo.titulo }}</h1>
+  </header>
+  <div class="prosa">
+    {% block texto %}{% endblock %}
+  </div>
+  <footer class="artigo-fim">
+    <a class="proximo-artigo" href="{{ url_for('aprender.artigo', slug=seguinte.slug) }}">
+      <span><small>Próxima leitura</small><strong>{{ seguinte.titulo }}</strong></span>
+      {{ icone('seta') }}
+    </a>
+  </footer>
+</article>
+{% endblock %}

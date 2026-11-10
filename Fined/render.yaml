@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: fined
+    runtime: docker
+    plan: free
+    region: virginia
+    healthCheckPath: /healthz
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: FINED_DB_HOST
+        value: aws-1-sa-east-1.pooler.supabase.com
+      - key: FINED_DB_PROJETO
+        value: kwlopoulfjqqbqbxuous
+      - key: FINED_SECRET_KEY
+        generateValue: true
+      - key: FINED_DB_PASSWORD
+        sync: false

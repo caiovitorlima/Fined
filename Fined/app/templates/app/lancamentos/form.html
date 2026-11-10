@@ -1,0 +1,79 @@
+{% extends "layout_app.html" %}
+{% from "_icones.html" import icone %}
+{% from "_macros.html" import csrf, erro with context %}
+{% block titulo %}{{ 'Novo lançamento' if lancamento is none else 'Editar lançamento' }} | Fined{% endblock %}
+{% block conteudo %}
+{% set editando = lancamento is not none %}
+<div class="form-pagina">
+  <a class="voltar" href="{{ url_for('lancamentos.lista') }}">{{ icone('voltar') }} Extrato</a>
+  <header class="cabeca">
+    <div>
+      <h1>{{ 'Editar lançamento' if editando else 'Novo lançamento' }}</h1>
+    </div>
+  </header>
+
+  <form class="cartao form-lanc" method="post" action="{{ url_for('lancamentos.editar', id_=lancamento.id) if editando else url_for('lancamentos.novo') }}">
+    {{ csrf() }}
+    <fieldset class="seg">
+      <legend>Tipo de lançamento</legend>
+      <label><input type="radio" name="tipo" value="despesa" {% if campos.tipo == 'despesa' %}checked{% endif %}><span>Despesa</span></label>
+      <label><input type="radio" name="tipo" value="receita" {% if campos.tipo == 'receita' %}checked{% endif %}><span>Receita</span></label>
+    </fieldset>
+    {{ erro(erros.tipo) }}
+
+    <div class="campo{% if erros.valor %} tem-erro{% endif %}">
+      <label for="valor">Valor</label>
+      <div class="valor-input">
+        <span>R$</span>
+        <input id="valor" name="valor" type="text" inputmode="decimal" autocomplete="off" placeholder="0,00" maxlength="20" value="{{ campos.valor }}" required {% if not editando %}autofocus{% endif %}>
+      </div>
+      {{ erro(erros.valor) }}
+    </div>
+
+    {% for tipo in ['despesa', 'receita'] %}
+    <div class="campo{% if erros.categoria %} tem-erro{% endif %}" data-categorias="{{ tipo }}" {% if campos.tipo != tipo %}data-inativo{% endif %}>
+      <label for="categoria-{{ tipo }}">Categoria de {{ tipo }}</label>
+      <select class="entrada" id="categoria-{{ tipo }}" name="categoria_{{ tipo }}" {% if erros.categoria %}aria-describedby="erro-categoria-{{ tipo }}" aria-invalid="true"{% endif %}>
+        <option value="">Selecione a categoria</option>
+        {% for chave, nome, _ in CATEGORIAS[tipo] %}
+        <option value="{{ chave }}" {% if campos.tipo == tipo and campos.categoria == chave %}selected{% endif %}>{{ nome }}</option>
+        {% endfor %}
+      </select>
+      {% if erros.categoria %}<p id="erro-categoria-{{ tipo }}" class="campo__erro">{{ erros.categoria }}</p>{% endif %}
+    </div>
+    {% endfor %}
+
+    <div class="duas-colunas" style="margin-top: 18px">
+      <div class="campo{% if erros.data %} tem-erro{% endif %}">
+        <label for="data">Data</label>
+        <input class="entrada" id="data" name="data" type="date" min="2000-01-01" max="2100-12-31" value="{{ campos.data }}" required>
+        <div class="atalhos">
+          <button class="atalho" type="button" data-dia="0" data-alvo="data">Hoje</button>
+          <button class="atalho" type="button" data-dia="1" data-alvo="data">Ontem</button>
+        </div>
+        {{ erro(erros.data) }}
+      </div>
+      <div class="campo{% if erros.descricao %} tem-erro{% endif %}">
+        <label for="descricao">Descrição <span class="campo__ajuda">(opcional)</span></label>
+        <input class="entrada" id="descricao" name="descricao" type="text" maxlength="120" value="{{ campos.descricao }}">
+        {{ erro(erros.descricao) }}
+      </div>
+    </div>
+
+    <div class="form-acoes">
+      <button class="btn btn--tinta" type="submit"><span>{{ 'Salvar alterações' if editando else 'Salvar' }}</span></button>
+      {% if not editando %}
+      <button class="btn" type="submit" name="continuar" value="1">Salvar e criar outro</button>
+      {% endif %}
+      <a class="link-cancelar" href="{{ url_for('lancamentos.lista') }}">Cancelar</a>
+    </div>
+  </form>
+
+  {% if editando %}
+  <form class="zona-excluir" method="post" action="{{ url_for('lancamentos.excluir', id_=lancamento.id) }}" data-confirmar="Os totais do mês serão recalculados após a exclusão.">
+    {{ csrf() }}
+    <button class="btn btn--perigo-suave btn--p" type="submit">{{ icone('lixo') }}<span>Excluir</span></button>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

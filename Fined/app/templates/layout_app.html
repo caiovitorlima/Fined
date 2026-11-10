@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% from "_icones.html" import icone %}
+{% from "_marca.html" import marca %}
+{% block classe_corpo %}app{% endblock %}
+{% block corpo %}
+{% set secao = request.blueprint %}
+{% set itens_menu = [
+  ("painel", "painel.inicio", "Painel"),
+  ("lancamentos", "lancamentos.lista", "Extrato"),
+  ("metas", "metas.lista", "Metas"),
+  ("aprender", "aprender.indice", "Guias"),
+] %}
+<header class="area-nav">
+  <div class="area-nav__miolo">
+    {{ marca(url_for('publico.inicio')) }}
+    <nav class="area-nav__links" aria-label="Área da conta">
+      {% for chave, rota, nome in itens_menu %}
+      <a href="{{ url_for(rota) }}" {% if secao == chave %}aria-current="page"{% endif %}>{{ nome }}</a>
+      {% endfor %}
+    </nav>
+    <div class="area-nav__conta">
+      <a href="{{ url_for('perfil.inicio') }}" {% if secao == 'perfil' %}aria-current="page"{% endif %}>
+        Perfil
+      </a>
+      <form method="post" action="{{ url_for('auth.sair') }}">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <button type="submit">Sair</button>
+      </form>
+    </div>
+  </div>
+</header>
+<main class="principal" id="conteudo">
+  {% block conteudo %}{% endblock %}
+</main>
+{% endblock %}

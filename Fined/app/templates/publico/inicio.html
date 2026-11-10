@@ -1,0 +1,34 @@
+{% extends "layout_publico.html" %}
+{% from "_icones.html" import icone %}
+{% block titulo %}Fined | Finanças pessoais{% endblock %}
+{% block classe_corpo %}publico inicio{% endblock %}
+{% block conteudo %}
+<section class="container inicio__abertura" aria-labelledby="inicio-titulo">
+  <div class="inicio__texto">
+    <h1 id="inicio-titulo">A educação financeira que você precisa para decolar.</h1>
+    <p>Aprenda e organize sua vida financeira de forma prática e simples, descobrindo conceitos e tendo responsabilidade com sua renda.</p>
+    <div class="inicio__acoes">
+      {% if usuario %}
+      <a class="btn btn--tinta" href="{{ url_for('painel.inicio') }}">Abrir painel</a>
+      {% else %}
+      <a class="btn btn--tinta" href="{{ url_for('auth.cadastro') }}">Criar conta</a>
+      <a class="inicio__entrar" href="{{ url_for('auth.entrar') }}">Entrar</a>
+      {% endif %}
+    </div>
+  </div>
+  <div class="inicio__sinal">
+    <img src="{{ url_for('static', filename='img/marca-horizontal.png') }}" width="2172" height="724" alt="">
+  </div>
+</section>
+
+<section class="inicio__guias" aria-labelledby="inicio-guias">
+  <div class="container inicio__guias-miolo">
+    <header><h2 id="inicio-guias">Guias de finanças</h2><a href="{{ url_for('aprender.indice') }}">Ver todos os guias</a></header>
+    <ul>
+      <li><a href="{{ url_for('aprender.artigo', slug='orcamento') }}">Orçamento mensal {{ icone('direita') }}</a></li>
+      <li><a href="{{ url_for('aprender.artigo', slug='reserva-de-emergencia') }}">Reserva de emergência {{ icone('direita') }}</a></li>
+      <li><a href="{{ url_for('aprender.artigo', slug='investimentos-basico') }}">Investimentos e perfis de risco {{ icone('direita') }}</a></li>
+    </ul>
+  </div>
+</section>
+{% endblock %}

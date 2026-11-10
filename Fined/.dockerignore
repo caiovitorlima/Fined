@@ -1,0 +1,9 @@
+*
+!requirements-prod.txt
+!app/
+!app/**
+app/**/__pycache__
+app/**/*.pyc
+!deploy/
+deploy/*
+!deploy/supabase-ca.crt

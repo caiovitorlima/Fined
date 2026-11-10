@@ -1,0 +1,71 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    environment:
+      FINED_PRODUCAO: "1"
+      FINED_DOMINIO: ${FINED_DOMINIO:?preencha FINED_DOMINIO no .env}
+      FINED_DB_HOST: ${FINED_DB_HOST:?preencha FINED_DB_HOST no .env}
+      FINED_DB_PROJETO: ${FINED_DB_PROJETO:?preencha FINED_DB_PROJETO no .env}
+    secrets:
+      - secret_key
+      - db_password
+    volumes:
+      - type: bind
+        source: ./deploy/supabase-ca.crt
+        target: /certs/supabase-ca.crt
+        read_only: true
+        bind:
+          create_host_path: false
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=16m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import os, urllib.request; urllib.request.urlopen(urllib.request.Request('http://127.0.0.1:8000/healthz', headers={'Host': os.environ['FINED_DOMINIO']}), timeout=8).close()"
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      FINED_DOMINIO: ${FINED_DOMINIO:?preencha FINED_DOMINIO no .env}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+secrets:
+  secret_key:
+    file: ./secrets/secret_key
+  db_password:
+    file: ./secrets/db_password
+
+volumes:
+  caddy_data:
+  caddy_config:

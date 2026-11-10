@@ -1,0 +1,75 @@
+{% extends "layout_app.html" %}
+{% from "_icones.html" import icone %}
+{% from "_macros.html" import csrf, navegar_mes with context %}
+{% block titulo %}Extrato | Fined{% endblock %}
+{% block conteudo %}
+<header class="cabeca">
+  <h1>Extrato</h1>
+  <div class="cabeca__acoes">
+    <a class="btn" data-exportar-extrato href="{{ url_for('lancamentos.exportar', mes=nav.chave, **filtros) }}">Baixar CSV</a>
+    <a class="btn btn--tinta" href="{{ url_for('lancamentos.novo') }}">{{ icone('mais') }} Novo lançamento</a>
+  </div>
+</header>
+
+<dl class="totais-mes" aria-label="Totais do mês">
+  <div><dt>Receitas do mês</dt><dd class="verde">{{ resumo.receitas|brl }}</dd></div>
+  <div><dt>Despesas do mês</dt><dd class="coral">{{ resumo.despesas|brl }}</dd></div>
+  <div><dt>Resultado do mês</dt><dd>{{ resumo.resultado|brl }}</dd></div>
+</dl>
+
+<section aria-labelledby="extrato-titulo">
+  <header class="filtros">
+    <h2 id="extrato-titulo">Lançamentos</h2>
+    {{ navegar_mes('lancamentos.lista', nav, filtros) }}
+  </header>
+  <form class="extrato-filtros" method="get" action="{{ url_for('lancamentos.lista') }}" aria-label="Filtrar lançamentos">
+    <input type="hidden" name="mes" value="{{ nav.chave }}">
+    <label>Busca<input class="entrada" type="search" name="q" value="{{ filtros.q }}" maxlength="120" placeholder="Descrição ou categoria"></label>
+    <label>Tipo<select class="entrada" name="tipo">
+      <option value="">Todos</option>
+      <option value="receita"{% if filtros.tipo == 'receita' %} selected{% endif %}>Receitas</option>
+      <option value="despesa"{% if filtros.tipo == 'despesa' %} selected{% endif %}>Despesas</option>
+    </select></label>
+    <label>Categoria<select class="entrada" name="categoria">
+      <option value="">Todas</option>
+      {% for chave, nome in categorias_filtro.items() %}
+      <option value="{{ chave }}"{% if filtros.categoria == chave %} selected{% endif %}>{{ nome }}</option>
+      {% endfor %}
+    </select></label>
+    <div class="extrato-filtros__acoes">
+      <button type="submit" class="btn btn--tinta">Filtrar</button>
+      <a data-extrato-limpar href="{{ url_for('lancamentos.lista', mes=nav.chave) }}"{% if not (filtros.tipo or filtros.categoria or filtros.q) %} hidden{% endif %}>Limpar</a>
+    </div>
+  </form>
+
+  <p class="extrato-contagem" data-extrato-contagem {% if not quantidade %}hidden{% endif %}>{{ plural(quantidade, 'lançamento', 'lançamentos') }}</p>
+  <p class="extrato-vazio" data-extrato-vazio {% if dias %}hidden{% endif %}>{{ 'Nenhum lançamento com esses filtros.' if filtros.tipo or filtros.categoria or filtros.q else 'Nenhum lançamento neste mês.' }}</p>
+  {% if dias %}
+  <table class="extrato">
+    <caption class="sr">Lançamentos de {{ mes_extenso(nav.ano, nav.mes) }}</caption>
+    <thead><tr><th scope="col">Descrição</th><th scope="col">Valor</th><th scope="col"><span class="sr">Ações</span></th></tr></thead>
+    {% for dia in dias %}
+    <tbody>
+      <tr class="extrato__dia"><th scope="rowgroup" colspan="3"><span>{{ titulo_dia(dia.data, hoje) }}</span><span>{{ dia.total|brl(sinal=true) }}</span></th></tr>
+      {% for item in dia.itens %}
+      {% set categoria = rotulo_categoria(item.tipo, item.categoria) %}
+      <tr class="extrato__item" data-registro="{{ item.id }}">
+        <th scope="row">
+          <a href="{{ url_for('lancamentos.editar', id_=item.id) }}">{{ item.descricao or categoria }}</a>
+          {% if item.descricao %}<small>{{ categoria }}</small>{% endif %}
+        </th>
+        <td class="{{ 'verde' if item.tipo == 'receita' else 'coral' }}">{{ item.valor_com_sinal|brl(sinal=true) }}</td>
+        <td>
+          <form method="post" action="{{ url_for('lancamentos.excluir', id_=item.id) }}" data-confirmar="Excluir “{{ item.descricao or categoria }}” de {{ item.valor_centavos|brl }}?">
+            {{ csrf() }}
+            <button class="icone-btn icone-btn--perigo" type="submit" aria-label="Excluir lançamento: {{ item.descricao or categoria }}">{{ icone('lixo') }}</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    {% endfor %}
+  </table>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% from "_icones.html" import icone %}
+{% from "_marca.html" import marca %}
+{% from "_macros.html" import csrf with context %}
+{% block titulo %}Entrar | Fined{% endblock %}
+{% block classe_corpo %}publico{% endblock %}
+{% block corpo %}
+<main class="auth" id="conteudo">
+  <section class="auth__form">
+    {{ marca(url_for('publico.inicio')) }}
+    <h1>Entrar</h1>
+    {% if erro %}
+    <div class="alerta-form" role="alert">{{ icone('alerta') }}<span>{{ erro }}</span></div>
+    {% endif %}
+    <form method="post" action="{{ url_for('auth.entrar') }}">
+      {{ csrf() }}
+      {% if proximo %}<input type="hidden" name="next" value="{{ proximo }}">{% endif %}
+      <div class="campo">
+        <label for="email">E-mail</label>
+        <input class="entrada" id="email" name="email" type="email" autocomplete="username" maxlength="160" value="{{ email }}" required {% if not email %}autofocus{% endif %}>
+      </div>
+      <div class="campo">
+        <label for="senha">Senha</label>
+        <div class="senha-box">
+          <input class="entrada" id="senha" name="senha" type="password" autocomplete="current-password" maxlength="128" required {% if email %}autofocus{% endif %}>
+          <button class="icone-btn" type="button" data-olho="senha" aria-label="Mostrar senha" aria-pressed="false">{{ icone('olho') }}</button>
+        </div>
+      </div>
+      <button class="btn btn--tinta btn--g btn--bloco" type="submit">Entrar</button>
+    </form>
+    <p class="auth__troca">Ainda não tem conta? <a href="{{ url_for('auth.cadastro', next=proximo) }}">Criar conta</a></p>
+  </section>
+</main>
+{% endblock %}

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="pt-BR" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{% block titulo %}Fined | Controle e educação financeira{% endblock %}</title>
+  <meta name="description" content="Registre receitas e despesas, acompanhe metas e consulte conteúdos de educação financeira.">
+  <meta name="theme-color" content="#174bb8">
+  <link rel="icon" href="{{ url_for('static', filename='img/marca.png') }}" type="image/png">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</head>
+<body class="{% block classe_corpo %}{% endblock %}">
+  <a class="pular" href="#conteudo">Pular para o conteúdo</a>
+  {% block corpo %}{% endblock %}
+
+  {% with mensagens = get_flashed_messages(with_categories=true) %}
+  <div class="avisos-flutuantes" aria-live="polite">
+    {% for categoria, mensagem in mensagens[-3:] %}
+    <div class="toast toast--{{ categoria }}" role="status">
+      <span>{{ mensagem }}</span>
+      <button type="button" class="toast__fechar" aria-label="Fechar aviso" data-fechar-toast>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>
+      </button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endwith %}
+
+  <dialog class="confirmar" id="confirmar" aria-labelledby="confirmar-titulo">
+    <form method="dialog">
+      <p class="confirmar__titulo" id="confirmar-titulo">Confirmar exclusão</p>
+      <p class="confirmar__texto" data-confirmar-texto></p>
+      <div class="confirmar__acoes">
+        <button class="btn btn--linha" value="nao">Cancelar</button>
+        <button class="btn btn--perigo" value="sim" data-confirmar-sim>Excluir</button>
+      </div>
+    </form>
+  </dialog>
+</body>
+</html>

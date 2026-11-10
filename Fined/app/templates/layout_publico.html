@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% from "_marca.html" import marca %}
+{% block classe_corpo %}publico{% endblock %}
+{% block corpo %}
+<header class="nav-publica">
+  <div class="nav-publica__miolo">
+    {{ marca(url_for('publico.inicio')) }}
+    <nav class="nav-publica__links" aria-label="Navegação principal">
+      <a href="{{ url_for('publico.inicio') }}" {% if request.endpoint == 'publico.inicio' %}aria-current="page"{% endif %}>Início</a>
+      <a href="{{ url_for('aprender.indice') }}" {% if request.blueprint == 'aprender' %}aria-current="page"{% endif %}>Guias</a>
+      {% if usuario %}
+      <a href="{{ url_for('painel.inicio') }}">Painel</a>
+      {% else %}
+      <a href="{{ url_for('auth.entrar') }}">Entrar</a>
+      {% if request.endpoint != 'publico.inicio' %}
+      <a href="{{ url_for('auth.cadastro') }}">Criar conta</a>
+      {% endif %}
+      {% endif %}
+    </nav>
+  </div>
+</header>
+
+<main id="conteudo" class="publico__conteudo">
+  {% block conteudo %}{% endblock %}
+</main>
+
+<footer class="rodape">
+  <div class="rodape__miolo">
+    <span class="rodape__nome">Fined</span>
+    <nav class="rodape__links" aria-label="Rodapé">
+      <a href="{{ url_for('publico.inicio') }}">Início</a>
+      <a href="{{ url_for('aprender.indice') }}">Guias</a>
+    </nav>
+  </div>
+</footer>
+{% endblock %}

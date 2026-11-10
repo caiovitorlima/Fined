@@ -1,0 +1,64 @@
+{% from "_icones.html" import icone %}
+
+{% macro csrf() -%}
+<input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+{%- endmacro %}
+
+{% macro erro(mensagem) -%}
+{% if mensagem %}<p class="campo__erro" role="alert">{{ mensagem }}</p>{% endif %}
+{%- endmacro %}
+
+{% macro valor_grande(centavos_valor) -%}
+<span class="vg">{% if centavos_valor < 0 %}−{% endif %}<span class="vg__moeda">R$</span><span class="vg__reais">{{ centavos_valor|abs|reais }}</span><span class="vg__cent">,{{ centavos_valor|abs|centavos }}</span></span>
+{%- endmacro %}
+
+{% macro navegar_mes(rota, nav, extra={}) -%}
+<div class="mes-nav" role="group" aria-label="Escolher mês">
+  {% if nav.anterior %}
+  <a class="mes-nav__seta" href="{{ url_for(rota, mes=nav.anterior, **extra) }}" aria-label="Mês anterior">{{ icone('esquerda') }}</a>
+  {% else %}<span class="mes-nav__seta is-off">{{ icone('esquerda') }}</span>{% endif %}
+  <span class="mes-nav__rotulo">{{ mes_extenso(nav.ano, nav.mes) }}</span>
+  {% if nav.proximo %}
+  <a class="mes-nav__seta" href="{{ url_for(rota, mes=nav.proximo, **extra) }}" aria-label="Próximo mês">{{ icone('direita') }}</a>
+  {% else %}<span class="mes-nav__seta is-off">{{ icone('direita') }}</span>{% endif %}
+  {% if not nav.atual %}
+  <a class="mes-nav__hoje" href="{{ url_for(rota, mes=nav.chave_hoje, **extra) }}">Mês atual</a>
+  {% endif %}
+</div>
+{%- endmacro %}
+
+{% macro item_lancamento(item, mostrar_data=false) -%}
+{% set nome_cat = rotulo_categoria(item.tipo, item.categoria) %}
+<li class="item item--{{ item.tipo }}">
+  <a class="item__link" href="{{ url_for('lancamentos.editar', id_=item.id) }}">
+    <span class="item__marca">{{ icone('entrada' if item.tipo == 'receita' else 'saida') }}</span>
+    <span class="item__texto">
+      <strong>{{ item.descricao or nome_cat }}</strong>
+      <small>{{ nome_cat }}{% if mostrar_data %} · {{ item.data|data_curta }}{% endif %}</small>
+    </span>
+    <span class="item__valor">{{ item.valor_com_sinal|brl(sinal=true) }}</span>
+  </a>
+</li>
+{%- endmacro %}
+
+{% macro cartao_meta(meta, texto_prazo) -%}
+<a class="meta-cartao{% if meta.concluida %} is-batida{% endif %}" href="{{ url_for('metas.detalhe', id_=meta.id) }}">
+  <span class="meta-cartao__topo">
+    <span class="meta-cartao__nome">{{ meta.nome }}</span>
+    <span class="meta-cartao__pct">{{ meta.percentual }}%</span>
+  </span>
+  <span class="progresso" role="progressbar" aria-valuenow="{{ meta.percentual }}" aria-valuemin="0" aria-valuemax="100" aria-label="Progresso de {{ meta.nome }}"><i style="width: {{ meta.percentual }}%"></i></span>
+  <span class="meta-cartao__base">
+    <span><strong>{{ meta.guardado|brl }}</strong> de {{ meta.valor_alvo_centavos|brl }}</span>
+    <span class="meta-cartao__prazo">{{ texto_prazo(meta, hoje) }}</span>
+  </span>
+</a>
+{%- endmacro %}
+
+{% macro vazio(titulo, texto=none, acao_url=none, acao_texto=none) -%}
+<div class="vazio">
+  <p class="vazio__titulo">{{ titulo }}</p>
+  {% if texto %}<p class="vazio__texto">{{ texto }}</p>{% endif %}
+  {% if acao_url %}<a class="btn btn--tinta" href="{{ acao_url }}">{{ icone('mais') }}<span>{{ acao_texto }}</span></a>{% endif %}
+</div>
+{%- endmacro %}

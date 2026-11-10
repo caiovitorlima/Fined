@@ -1,0 +1,20 @@
+{% extends layout %}
+{% from "_icones.html" import icone %}
+{% block titulo %}Guias | Fined{% endblock %}
+{% block conteudo %}
+<section class="aprender-pagina">
+  <header class="aprender-topo">
+    <h1>Guias de finanças</h1>
+  </header>
+  <ul class="indice">
+    {% for artigo in artigos %}
+    <li>
+      <a href="{{ url_for('aprender.artigo', slug=artigo.slug) }}">
+        {{ artigo.titulo }}
+        {{ icone('direita') }}
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}

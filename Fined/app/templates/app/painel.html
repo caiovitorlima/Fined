@@ -1,0 +1,144 @@
+{% extends "layout_app.html" %}
+{% from "_icones.html" import icone %}
+{% from "_macros.html" import valor_grande, navegar_mes, item_lancamento, cartao_meta with context %}
+{% block titulo %}Painel | Fined{% endblock %}
+{% block conteudo %}
+<header class="cabeca">
+  <h1>Painel financeiro</h1>
+  <div class="cabeca__acoes">
+    {{ navegar_mes('painel.inicio', nav) }}
+    <a class="btn btn--tinta" href="{{ url_for('lancamentos.novo') }}">{{ icone('mais') }} Novo lançamento</a>
+  </div>
+</header>
+
+{% if resumo.vazio %}
+<p class="painel-vazio">{{ 'Nenhum lançamento no mês.' if nav.atual else 'Nenhum lançamento em ' ~ mes_extenso(nav.ano, nav.mes) ~ '.' }}</p>
+{% endif %}
+
+<section class="numeros" aria-label="Resumo do mês">
+  <article class="numero">
+    <div class="numero__topo">
+      <span class="etiqueta etiqueta--verde">Receitas</span>
+    </div>
+    <p class="numero__valor">{{ valor_grande(resumo.receitas) }}</p>
+  </article>
+  <article class="numero">
+    <div class="numero__topo">
+      <span class="etiqueta etiqueta--coral">Despesas</span>
+    </div>
+    <p class="numero__valor">{{ valor_grande(resumo.despesas) }}</p>
+  </article>
+  <article class="numero numero--resultado{% if resumo.resultado < 0 %} is-negativo{% endif %}">
+    <div class="numero__topo">
+      <span class="etiqueta">Resultado do mês</span>
+    </div>
+    <p class="numero__valor">{{ valor_grande(resumo.resultado) }}</p>
+  </article>
+</section>
+
+<div class="grade-painel">
+  <section class="painel-secao cartao--historico">
+    <header class="cartao__cabeca">
+      <h2>Últimos 6 meses</h2>
+      <div class="barras-legenda"><span>Receitas</span><span>Despesas</span></div>
+    </header>
+    <div class="barras">
+      {% for item in meses %}
+      <a class="barras__mes{% if item.atual %} is-atual{% endif %}" href="{{ url_for('painel.inicio', mes=item.chave) }}" aria-label="{{ mes_extenso(item.ano, item.mes) }}: entrou {{ item.receitas|brl }}, saiu {{ item.despesas|brl }}">
+        <span class="barras__colunas">
+          <span class="barra barra--entrada{% if item.receitas %} tem-valor{% endif %}" style="height: {{ item.altura_receitas }}%"></span>
+          <span class="barra barra--saida{% if item.despesas %} tem-valor{% endif %}" style="height: {{ item.altura_despesas }}%"></span>
+        </span>
+        <span class="barras__rotulo"><span>{{ item.rotulo }}</span></span>
+        <span class="barras__dica" aria-hidden="true"><b>+ {{ item.receitas|brl }}</b><br><i>− {{ item.despesas|brl }}</i></span>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="painel-secao cartao--categorias">
+    <header class="cartao__cabeca">
+      <h2>Despesas por categoria</h2>
+      {% if resumo.categorias %}<a href="{{ url_for('lancamentos.lista', mes=nav.chave, tipo='despesa') }}">Ver despesas</a>{% endif %}
+    </header>
+    {% if resumo.categorias %}
+    <div class="categorias">
+      <div class="rosca">
+        <svg viewBox="0 0 42 42" role="img" aria-label="Gráfico de despesas por categoria">
+          <circle cx="21" cy="21" r="15.91549" fill="none" stroke="var(--papel-2)" stroke-width="5.5"/>
+          {% for fatia in fatias %}
+          <circle cx="21" cy="21" r="15.91549" fill="none" stroke="{{ fatia.cor }}" stroke-width="5.5" stroke-dasharray="{{ '%.3f'|format(fatia.arco) }} {{ '%.3f'|format(fatia.resto) }}" stroke-dashoffset="{{ '%.3f'|format(fatia.inicio) }}"/>
+          {% endfor %}
+        </svg>
+        <div class="rosca__centro">
+          <small>Despesas</small>
+          {{ valor_grande(resumo.despesas) }}
+        </div>
+      </div>
+      <ul class="legenda">
+        {% for categoria in resumo.categorias %}
+        <li style="--cor: {{ categoria.cor }}">
+          <span class="legenda__ponto"></span>
+          <a class="legenda__nome" href="{{ url_for('lancamentos.lista', mes=nav.chave, tipo='despesa', categoria=categoria.chave) }}">{{ categoria.rotulo }}</a>
+          <span class="legenda__pct">{{ categoria.fracao|porcento }}</span>
+          <span class="legenda__valor">{{ categoria.total|brl }}</span>
+          <span class="legenda__barra"><i style="width: {{ '%.2f'|format(categoria.fracao * 100) }}%"></i></span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% else %}
+    <p class="calmo">Nenhuma despesa neste mês.</p>
+    {% endif %}
+  </section>
+
+  <section class="painel-secao cartao--recentes">
+    <header class="cartao__cabeca">
+      <h2>Lançamentos recentes</h2>
+      {% if recentes %}<a href="{{ url_for('lancamentos.lista', mes=nav.chave) }}">Abrir extrato</a>{% endif %}
+    </header>
+    {% if recentes %}
+    <ul class="itens">
+      {% for item in recentes %}{{ item_lancamento(item, mostrar_data=true) }}{% endfor %}
+    </ul>
+    {% else %}
+    <p class="calmo">Nenhum lançamento no período.</p>
+    {% endif %}
+  </section>
+
+  <section class="painel-secao cartao--metas">
+    <header class="cartao__cabeca">
+      <h2>Metas</h2>
+      <a href="{{ url_for('metas.lista') }}">Ver metas</a>
+    </header>
+    {% set ativas = metas|rejectattr('concluida')|list %}
+    {% if ativas %}
+    <div class="metas-mini">
+      {% for meta in ativas[:3] %}{{ cartao_meta(meta, texto_prazo) }}{% endfor %}
+    </div>
+    {% elif metas %}
+    <p class="calmo">{{ icone('trofeu') }} Todas as metas estão concluídas.</p>
+    {% else %}
+    <p class="calmo">Nenhuma meta cadastrada.</p>
+    {% endif %}
+  </section>
+
+  {% if avisos %}
+  <section class="painel-secao cartao--avisos">
+    <header class="cartao__cabeca"><h2>Avisos</h2></header>
+    <ul class="avisos">
+      {% for aviso in avisos %}
+      <li class="aviso aviso--{{ aviso.tipo }}">
+        <span class="aviso__icone">{{ icone({'alerta': 'alerta', 'atencao': 'info'}[aviso.tipo]) }}</span>
+        <div>
+          <strong>{{ aviso.titulo }}</strong>
+          <p>{{ aviso.texto }}</p>
+          {% if aviso.meta_id %}<a href="{{ url_for('metas.detalhe', id_=aviso.meta_id) }}">Abrir meta</a>{% endif %}
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

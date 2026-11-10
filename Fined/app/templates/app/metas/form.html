@@ -1,0 +1,53 @@
+{% extends "layout_app.html" %}
+{% from "_icones.html" import icone %}
+{% from "_macros.html" import csrf, erro with context %}
+{% block titulo %}{{ 'Nova meta' if meta is none else 'Editar meta' }} | Fined{% endblock %}
+{% block conteudo %}
+{% set editando = meta is not none %}
+<div class="form-pagina">
+  <a class="voltar" href="{{ url_for('metas.detalhe', id_=meta.id) if editando else url_for('metas.lista') }}">{{ icone('voltar') }} {{ meta.nome if editando else 'Metas' }}</a>
+  <header class="cabeca">
+    <div>
+      <h1>{{ 'Editar meta' if editando else 'Nova meta' }}</h1>
+    </div>
+  </header>
+
+  <form class="cartao" method="post" action="{{ url_for('metas.editar', id_=meta.id) if editando else url_for('metas.nova') }}">
+    {{ csrf() }}
+    <div class="campo{% if erros.nome %} tem-erro{% endif %}">
+      <label for="nome">Nome da meta</label>
+      <input class="entrada" id="nome" name="nome" type="text" maxlength="60" placeholder="Ex.: Reserva de emergência" value="{{ campos.nome }}" required {% if not editando %}autofocus{% endif %}>
+      {{ erro(erros.nome) }}
+    </div>
+
+    <div class="campo{% if erros.valor_alvo %} tem-erro{% endif %}">
+      <label for="valor_alvo">Valor-alvo</label>
+      <div class="valor-input">
+        <span>R$</span>
+        <input id="valor_alvo" name="valor_alvo" type="text" inputmode="decimal" autocomplete="off" placeholder="0,00" maxlength="20" value="{{ campos.valor_alvo }}" required>
+      </div>
+      {{ erro(erros.valor_alvo) }}
+    </div>
+
+    <div class="duas-colunas" style="margin-top: 18px">
+      <div class="campo{% if erros.prazo %} tem-erro{% endif %}">
+        <label for="prazo">Prazo</label>
+        <input class="entrada" id="prazo" name="prazo" type="date" {% if not editando %}min="{{ hoje.isoformat() }}"{% endif %} max="2100-12-31" value="{{ campos.prazo }}" required>
+        {{ erro(erros.prazo) }}
+      </div>
+      {% if not editando %}
+      <div class="campo{% if erros.guardado %} tem-erro{% endif %}">
+        <label for="guardado">Valor já guardado <span class="campo__ajuda">(opcional)</span></label>
+        <input class="entrada" id="guardado" name="guardado" type="text" inputmode="decimal" autocomplete="off" placeholder="R$ 0,00" maxlength="20" value="{{ campos.guardado }}">
+        {{ erro(erros.guardado) }}
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="form-acoes">
+      <button class="btn btn--tinta" type="submit"><span>{{ 'Salvar alterações' if editando else 'Criar meta' }}</span></button>
+      <a class="link-cancelar" href="{{ url_for('metas.detalhe', id_=meta.id) if editando else url_for('metas.lista') }}">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
