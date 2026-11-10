@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "_icones.html" import icone %}
 {% from "_marca.html" import marca %}
-{% from "_macros.html" import csrf, erro with context %}
+{% from "_macros.html" import csrf, erro as erro_campo with context %}
 {% block titulo %}Criar conta | Fined{% endblock %}
 {% block classe_corpo %}publico{% endblock %}
 {% block corpo %}
@@ -18,12 +18,12 @@
       <div class="campo{% if erros.nome %} tem-erro{% endif %}">
         <label for="nome">Nome</label>
         <input class="entrada" id="nome" name="nome" type="text" autocomplete="name" maxlength="80" value="{{ campos.nome }}" required autofocus>
-        {{ erro(erros.nome) }}
+        {{ erro_campo(erros.nome) }}
       </div>
       <div class="campo{% if erros.email %} tem-erro{% endif %}">
         <label for="email">E-mail</label>
         <input class="entrada" id="email" name="email" type="email" autocomplete="username" maxlength="160" value="{{ campos.email }}" required>
-        {{ erro(erros.email) }}
+        {{ erro_campo(erros.email) }}
       </div>
       <div class="campo{% if erros.senha %} tem-erro{% endif %}">
         <label for="senha">Senha</label>

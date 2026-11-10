@@ -110,6 +110,18 @@ class TestContas:
         assert resposta.headers["Location"].endswith("/painel")
         assert "Painel financeiro" in texto(client.get("/painel"))
 
+    def test_cadastro_mostra_alerta_apenas_quando_bloqueado(self, client, monkeypatch):
+        pagina = client.get("/cadastro")
+        assert pagina.status_code == 200
+        assert 'class="alerta-form"' not in texto(pagina)
+
+        monkeypatch.setattr("app.rotas.auth._registrar_tentativas", lambda *limites: 60)
+        bloqueio = cadastrar(client)
+        assert bloqueio.status_code == 429
+        assert bloqueio.headers["Retry-After"] == "60"
+        assert 'class="alerta-form"' in texto(bloqueio)
+        assert "Muitas tentativas de cadastro." in texto(bloqueio)
+
     def test_cadastro_valida_campos(self, client):
         resposta = cadastrar(client, nome="A", email="sem-arroba", senha="123")
         corpo = texto(resposta)
